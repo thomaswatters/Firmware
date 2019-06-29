@@ -49,6 +49,7 @@
 #include <uORB/Publication.hpp>
 #include <uORB/PublicationQueued.hpp>
 #include <uORB/Subscription.hpp>
+#include <uORB/SubscriptionBlocking.hpp>
 #include <uORB/topics/home_position.h>
 #include <uORB/topics/parameter_update.h>
 #include <uORB/topics/vehicle_attitude_setpoint.h>
@@ -118,7 +119,7 @@ private:
 	uORB::Publication<vehicle_local_position_setpoint_s>	_local_pos_sp_pub{ORB_ID(vehicle_local_position_setpoint)};	/**< vehicle local position setpoint publication */
 	uORB::Publication<vehicle_local_position_setpoint_s>	_traj_sp_pub{ORB_ID(trajectory_setpoint)};			/**< trajectory setpoints publication */
 
-	int		_local_pos_sub{-1};			/**< vehicle local position */
+	uORB::SubscriptionBlocking<vehicle_local_position_s>	_local_pos_sub{ORB_ID(vehicle_local_position)};			/**< local position */
 
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};			/**< vehicle status subscription */
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};	/**< vehicle land detected subscription */
@@ -365,9 +366,6 @@ MulticopterPositionControl::parameters_update(bool force)
 void
 MulticopterPositionControl::poll_subscriptions()
 {
-	// This is polled for, so all we need to do is a copy now.
-	orb_copy(ORB_ID(vehicle_local_position), _local_pos_sub, &_local_pos);
-
 	if (_vehicle_status_sub.update(&_vehicle_status)) {
 
 		// set correct uORB ID, depending on if vehicle is VTOL or not
@@ -499,26 +497,13 @@ MulticopterPositionControl::run()
 {
 	hrt_abstime time_stamp_last_loop = hrt_absolute_time(); // time stamp of last loop iteration
 
-	_local_pos_sub = orb_subscribe(ORB_ID(vehicle_local_position));
-	orb_set_interval(_local_pos_sub, 20); // 50 Hz updates
-
 	// get initial values for all parameters and subscribtions
 	parameters_update(true);
 	poll_subscriptions();
 
-	// setup file descriptor to poll the local position as loop wakeup source
-	px4_pollfd_struct_t poll_fd = {};
-	poll_fd.fd = _local_pos_sub;
-	poll_fd.events = POLLIN;
-
 	while (!should_exit()) {
-		// poll for new data on the local position state topic (wait for up to 20ms)
-		const int poll_return = px4_poll(&poll_fd, 1, 20);
-
-		// poll_return == 0: go through the loop anyway to copy manual input at 50 Hz
-		// this is undesirable but not much we can do
-		if (poll_return < 0) {
-			PX4_ERR("poll error %d %d", poll_return, errno);
+		// wait for new data on the local position state topic
+		if (!_local_pos_sub.updateBlocking(_local_pos)) {
 			continue;
 		}
 
@@ -723,8 +708,6 @@ MulticopterPositionControl::run()
 			_att_sp.thrust_body[2] = 0.0f;
 		}
 	}
-
-	orb_unsubscribe(_local_pos_sub);
 }
 
 void
