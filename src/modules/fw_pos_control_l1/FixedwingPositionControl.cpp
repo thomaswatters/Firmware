@@ -38,13 +38,12 @@ extern "C" __EXPORT int fw_pos_control_l1_main(int argc, char *argv[]);
 FixedwingPositionControl::FixedwingPositionControl() :
 	ModuleParams(nullptr),
 	WorkItem(px4::wq_configurations::att_pos_ctrl),
-	_loop_perf(perf_alloc(PC_ELAPSED, "fw_pos_control_l1: cycle")),
-	_loop_interval_perf(perf_alloc(PC_INTERVAL, "fw_pos_control_l1: interval")),
+	_loop_perf(perf_alloc(PC_ELAPSED, MODULE_NAME": cycle")),
+	_loop_interval_perf(perf_alloc(PC_INTERVAL, MODULE_NAME": interval")),
 	_launchDetector(this),
 	_runway_takeoff(this)
 {
-	// limit to 50 Hz
-	_global_pos_sub.set_interval_ms(20);
+	_global_pos_sub.set_interval_us(20_ms); // limit to 50 Hz (20 milliseconds)
 
 	_parameter_handles.l1_period = param_find("FW_L1_PERIOD");
 	_parameter_handles.l1_damping = param_find("FW_L1_DAMPING");
