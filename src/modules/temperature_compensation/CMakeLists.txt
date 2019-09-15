@@ -1,6 +1,6 @@
 ############################################################################
 #
-#   Copyright (c) 2019 PX4 Development Team. All rights reserved.
+#   Copyright (c) 2015-2019 PX4 Development Team. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,7 +31,16 @@
 #
 ############################################################################
 
-px4_add_library(vehicle_angular_velocity
-	VehicleAngularVelocity.cpp
-)
-target_link_libraries(vehicle_angular_velocity PRIVATE px4_work_queue)
+px4_add_module(
+	MODULE modules__TemperatureCompensation
+	MAIN temperature_compensation
+	SRCS
+		TemperatureCompensationModule.cpp
+		TemperatureCompensation.cpp
+		temperature_calibration/accel.cpp
+		temperature_calibration/baro.cpp
+		temperature_calibration/gyro.cpp
+		temperature_calibration/task.cpp
+	DEPENDS
+		mathlib
+	)

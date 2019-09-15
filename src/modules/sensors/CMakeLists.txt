@@ -43,7 +43,6 @@ px4_add_module(
 		rc_update.cpp
 		sensors.cpp
 		parameters.cpp
-		temperature_compensation.cpp
 
 	DEPENDS
 		airspeed
@@ -53,6 +52,6 @@ px4_add_module(
 		git_ecl
 		ecl_validation
 		mathlib
-		sensors__vehicle_acceleration
-		sensors__vehicle_angular_velocity
+		vehicle_acceleration
+		vehicle_angular_velocity
 	)
