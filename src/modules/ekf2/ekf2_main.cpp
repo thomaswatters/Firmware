@@ -53,6 +53,7 @@
 #include <uORB/Publication.hpp>
 #include <uORB/PublicationMulti.hpp>
 #include <uORB/Subscription.hpp>
+#include <uORB/SubscriptionBlocking.hpp>
 #include <uORB/topics/airspeed.h>
 #include <uORB/topics/distance_sensor.h>
 #include <uORB/topics/ekf2_innovations.h>
@@ -258,6 +259,8 @@ private:
 	// republished aligned external visual odometry
 	bool new_ev_data_received = false;
 	vehicle_odometry_s _ev_odom{};
+
+	uORB::SubscriptionBlocking<sensor_combined_s> _sensor_combined_sub{ORB_ID(sensor_combined)};
 
 	uORB::Subscription _airdata_sub{ORB_ID(vehicle_air_data)};
 	uORB::Subscription _airspeed_sub{ORB_ID(airspeed)};
@@ -707,33 +710,19 @@ void Ekf2::run()
 {
 	bool imu_bias_reset_request = false;
 
-	px4_pollfd_struct_t fds[1] = {};
-	fds[0].fd = _sensors_sub;
-	fds[0].events = POLLIN;
-
 	// initialize data structures outside of loop
 	// because they will else not always be
 	// properly populated
-	sensor_combined_s sensors = {};
 	vehicle_land_detected_s vehicle_land_detected = {};
 	vehicle_status_s vehicle_status = {};
 	sensor_selection_s sensor_selection = {};
 
 	while (!should_exit()) {
-		int ret = px4_poll(fds, sizeof(fds) / sizeof(fds[0]), 1000);
 
-		if (!(fds[0].revents & POLLIN)) {
-			// no new data
-			continue;
-		}
+		sensor_combined_s sensors;
 
-		if (ret < 0) {
-			// Poll error, sleep and try again
-			px4_usleep(10000);
-			continue;
-
-		} else if (ret == 0) {
-			// Poll timeout or no new data, do nothing
+		if (!_sensor_combined_sub.updateBlocking(sensors)) {
+			// timeout or no new data, do nothing
 			continue;
 		}
 
