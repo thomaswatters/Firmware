@@ -204,13 +204,9 @@ AirspeedModule::task_spawn(int argc, char *argv[])
 
 	_object.store(dev);
 
-	if (dev) {
-		dev->ScheduleOnInterval(SCHEDULE_INTERVAL, 10000);
-		_task_id = task_id_is_work_queue;
-		return PX4_OK;
-	}
-
-	return PX4_ERROR;
+	dev->ScheduleOnInterval(SCHEDULE_INTERVAL, 10000);
+	_task_id = task_id_is_work_queue;
+	return PX4_OK;
 }
 
 void
