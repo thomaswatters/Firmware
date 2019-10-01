@@ -302,9 +302,9 @@ AirspeedModule::Run()
 			_airspeed_validator[i].update_airspeed_validator(input_data);
 
 		}
-	}
 
-	select_airspeed_and_publish();
+		select_airspeed_and_publish();
+	}
 
 	perf_end(_perf_elapsed);
 
