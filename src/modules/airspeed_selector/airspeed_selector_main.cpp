@@ -132,7 +132,7 @@ private:
 	bool _vehicle_local_position_valid{false}; /**< local position (from GPS) valid */
 	bool _in_takeoff_situation{true}; /**< in takeoff situation (defined as not yet stall speed reached) */
 	float _ground_minus_wind_TAS{0.0f}; /**< true airspeed from groundspeed minus windspeed */
-	float _ground_minus_wind_EAS{0.0f}; /**< true airspeed from groundspeed minus windspeed */
+	float _ground_minus_wind_EAS{0.0f}; /**< equivalent airspeed from groundspeed minus windspeed */
 
 	bool _scale_estimation_previously_on{false}; /**< scale_estimation was on in the last cycle */
 
@@ -553,7 +553,7 @@ int AirspeedModule::print_usage(const char *reason)
 		R"DESCR_STR(
 ### Description
 This module provides a single airspeed_validated topic, containing an indicated (IAS),
-equivalend (EAS), true airspeed (TAS) and the information if the estimation currently
+equivalent (EAS), true airspeed (TAS) and the information if the estimation currently
 is invalid and if based sensor readings or on groundspeed minus windspeed.
 Supporting the input of multiple "raw" airspeed inputs, this module automatically switches
 to a valid sensor in case of failure detection. For failure detection as well as for
